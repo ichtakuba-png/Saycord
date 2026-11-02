@@ -1,0 +1,1069 @@
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAYCORD MODE - Discord Mod Web Client</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Fira Code -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        saycord: {
+                            purple: '#7289da',
+                            darkPurple: '#5865F2',
+                            pink: '#f472b6',
+                            bg: '#313338',
+                            sidebar: '#2b2d31',
+                            guilds: '#1e1f22',
+                            userbar: '#232428',
+                            input: '#383a40',
+                            hover: '#35373c',
+                            muted: '#949ba4'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style id="custom-theme-style">
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1e1f22;
+            color: #dbdee1;
+            user-select: none;
+            overflow: hidden;
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1a1b1e; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #111214; }
+
+        /* Effects Styles */
+        .neon-glow-active {
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.35), inset 0 0 15px rgba(236, 72, 153, 0.15);
+            border: 1px solid rgba(168, 85, 247, 0.4) !important;
+        }
+
+        .glassmorphism-active {
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            background-opacity: 0.75 !important;
+        }
+
+        .nitro-badge-glow {
+            animation: nitroGlowPulse 2.5s infinite alternate;
+        }
+
+        @keyframes nitroGlowPulse {
+            0% { filter: drop-shadow(0 0 2px #ec4899); }
+            100% { filter: drop-shadow(0 0 8px #a855f7); }
+        }
+
+        /* Avatar Decoration Frame */
+        .avatar-decor-ring {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            background: linear-gradient(135deg, #a855f7, #ec4899, #3b82f6) border-box;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: destination-out;
+            mask-composite: exclude;
+            animation: spinDecor 6s linear infinite;
+        }
+
+        @keyframes spinDecor {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Theme Presets */
+        .theme-oled { background-color: #000000 !important; }
+        .theme-oled .bg-saycord-sidebar, 
+        .theme-oled .bg-saycord-userbar { background-color: #09090b !important; }
+        .theme-oled .bg-saycord-bg { background-color: #000000 !important; }
+
+        .theme-cyberpunk { background-color: #090d16 !important; }
+        .theme-cyberpunk .bg-saycord-bg { background-color: #0d1322 !important; }
+        .theme-cyberpunk .bg-saycord-sidebar { background-color: #080c18 !important; }
+
+        .theme-vaporwave { background-color: #1a0933 !important; }
+        .theme-vaporwave .bg-saycord-bg { background-color: #240c47 !important; }
+        .theme-vaporwave .bg-saycord-sidebar { background-color: #15062b !important; }
+    </style>
+    <!-- Placeholder cho Dynamic User Live CSS -->
+    <style id="saycord-live-user-css"></style>
+</head>
+<body class="h-screen w-screen relative overflow-hidden">
+
+    <!-- CANVAS BACKGROUND EFFECT (SNOW / PARTICLES) -->
+    <canvas id="particles-canvas" class="absolute inset-0 pointer-events-none z-30 hidden"></canvas>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="app-container" class="h-full w-full flex flex-col relative z-10">
+
+        <!-- ======================================================== -->
+        <!-- VIEW 1: AUTHENTICATION & OAUTH SETUP SCREEN               -->
+        <!-- ======================================================== -->
+        <div id="auth-view" class="h-full w-full flex items-center justify-center p-4 bg-[#0e0f11] bg-cover bg-center" style="background-image: radial-gradient(circle at 50% 40%, rgba(114, 137, 218, 0.15), transparent 70%);">
+            
+            <div class="w-full max-w-xl bg-[#2b2d31] p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-800 relative z-20">
+                <!-- App Title Branding -->
+                <div class="flex items-center justify-center gap-3 mb-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white text-2xl shadow-lg shadow-purple-500/30">
+                        <i class="fa-solid fa-bolt-lightning"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-extrabold text-white tracking-wider">SAYCORD <span class="text-purple-400 font-mono text-sm px-2 py-0.5 rounded bg-purple-950/80 border border-purple-500/40">MODE</span></h1>
+                    </div>
+                </div>
+
+                <p class="text-saycord-muted text-xs text-center mb-6">Ứng dụng Web Client Mod Discord thế hệ mới với hiệu ứng thị giác đỉnh cao.</p>
+
+                <!-- OAuth2 Redirect URI Helper Box -->
+                <div class="bg-[#1e1f22] p-4 rounded-xl border border-amber-500/30 mb-6 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Sửa lỗi "OAuth2 redirect_uri không hợp lệ"
+                        </span>
+                        <button onclick="toggleDevGuideModal(true)" class="text-xs text-purple-400 hover:underline font-semibold">
+                            Hướng dẫn <i class="fa-solid fa-circle-question"></i>
+                        </button>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                            Copy URI chuẩn bên dưới để dán vào Discord Dev Portal:
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="detected-redirect-uri" readonly 
+                                class="w-full bg-[#2b2d31] text-green-400 text-xs font-mono px-3 py-2 rounded border border-gray-700 focus:outline-none select-all">
+                            <button onclick="copyRedirectURI()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold px-3 py-2 rounded flex items-center gap-1 transition flex-shrink-0">
+                                <i class="fa-regular fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                Client ID từ App của bạn:
+                            </label>
+                            <input type="text" id="client-id-input" placeholder="Dán Client ID vào đây..." 
+                                class="w-full bg-[#2b2d31] text-white text-xs px-3 py-2 rounded border border-gray-700 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                                Override Redirect URI (Tùy chọn):
+                            </label>
+                            <input type="text" id="override-redirect-input" placeholder="Để trống để lấy URI tự động" 
+                                class="w-full bg-[#2b2d31] text-white text-xs px-3 py-2 rounded border border-gray-700 focus:outline-none focus:border-purple-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Login Buttons -->
+                <div class="space-y-3">
+                    <button onclick="loginWithDiscordOAuth()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
+                        <i class="fa-brands fa-discord text-xl"></i>
+                        <span>Đăng Nhập Với Tài Khoản Discord Thật</span>
+                    </button>
+
+                    <div class="flex items-center my-3">
+                        <div class="flex-grow border-t border-gray-700"></div>
+                        <span class="flex-shrink mx-4 text-xs text-saycord-muted uppercase font-semibold">HOẶC TRẢI NGHIỆM NHANH</span>
+                        <div class="flex-grow border-t border-gray-700"></div>
+                    </div>
+
+                    <button onclick="startDemoSession()" class="w-full bg-[#35373c] hover:bg-gray-700 text-gray-200 font-medium py-2.5 px-4 rounded-xl text-xs transition border border-gray-600/50 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-bolt text-amber-400"></i> Vào Trực Tiếp Chế Độ DEMO MODE (Không cần Client ID)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- VIEW 2: SAYCORD MODE CLIENT MAIN INTERFACE               -->
+        <!-- ======================================================== -->
+        <div id="saycord-app-view" class="h-full w-full flex hidden relative overflow-hidden">
+            
+            <!-- 1. GUILDS SIDEBAR (SERVER COLUMN) -->
+            <div class="w-[72px] bg-saycord-guilds flex flex-col items-center py-3 space-y-2 flex-shrink-0 z-20 border-r border-black/20">
+                <div class="relative group cursor-pointer" onclick="switchServer('home')">
+                    <div class="w-12 h-12 rounded-[16px] bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-lg hover:rounded-[12px] transition-all duration-200">
+                        <i class="fa-solid fa-bolt-lightning text-xl"></i>
+                    </div>
+                </div>
+
+                <div class="w-8 h-[2px] bg-gray-700/40 rounded my-1"></div>
+
+                <div class="flex-1 w-full flex flex-col items-center space-y-2 overflow-y-auto no-scrollbar">
+                    <div onclick="switchServer('saycord-hq')" class="w-12 h-12 rounded-[24px] hover:rounded-[14px] bg-purple-700 hover:bg-purple-600 text-white flex items-center justify-center font-bold text-lg cursor-pointer transition-all duration-200 shadow">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div onclick="switchServer('gaming-hub')" class="w-12 h-12 rounded-[24px] hover:rounded-[14px] bg-emerald-700 hover:bg-emerald-600 text-white flex items-center justify-center font-bold text-lg cursor-pointer transition-all duration-200 shadow">
+                        <i class="fa-solid fa-gamepad"></i>
+                    </div>
+                    <div onclick="switchServer('chill-lounge')" class="w-12 h-12 rounded-[24px] hover:rounded-[14px] bg-pink-700 hover:bg-pink-600 text-white flex items-center justify-center font-bold text-lg cursor-pointer transition-all duration-200 shadow">
+                        <i class="fa-solid fa-music"></i>
+                    </div>
+                </div>
+
+                <!-- Effects Hub Quick Trigger Button -->
+                <div onclick="openModSettings('effects')" title="SAYCORD Effects Hub" class="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white flex items-center justify-center cursor-pointer transition hover:scale-110 shadow-lg nitro-badge-glow">
+                    <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                </div>
+            </div>
+
+            <!-- 2. CHANNELS SIDEBAR -->
+            <div class="w-60 bg-saycord-sidebar flex flex-col flex-shrink-0 border-r border-[#1f2023]/40">
+                <div class="h-12 px-4 border-b border-[#1f2023] flex items-center justify-between font-bold text-white shadow-sm hover:bg-saycord-hover cursor-pointer">
+                    <span id="server-name-heading" class="truncate flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-purple-400"></i> SAYCORD MODE HQ
+                    </span>
+                    <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i>
+                </div>
+
+                <!-- Channels List -->
+                <div class="flex-1 overflow-y-auto px-2 py-3 space-y-4">
+                    <div>
+                        <div class="text-[11px] font-bold text-saycord-muted uppercase px-2 mb-1 tracking-wider">KÊNH VĂN BẢN MOD</div>
+                        <div class="space-y-[2px]">
+                            <button onclick="switchChannel('chung', 'Trò Chuyện Chung')" id="chan-chung" class="channel-btn w-full flex items-center justify-between px-2 py-1.5 rounded text-gray-200 hover:bg-saycord-hover bg-saycord-hover">
+                                <div class="flex items-center truncate">
+                                    <i class="fa-solid fa-hashtag text-gray-400 mr-2"></i>
+                                    <span class="text-sm font-medium">#chung</span>
+                                </div>
+                                <span class="text-[9px] bg-purple-900/90 text-purple-300 px-1.5 py-0.5 rounded font-mono">Logger</span>
+                            </button>
+                            <button onclick="switchChannel('thao-luan', 'Thảo Luận Mod')" id="chan-thao-luan" class="channel-btn w-full flex items-center px-2 py-1.5 rounded text-gray-400 hover:bg-saycord-hover hover:text-gray-200">
+                                <i class="fa-solid fa-hashtag text-gray-400 mr-2"></i>
+                                <span class="text-sm font-medium">#thao-luan</span>
+                            </button>
+                            <button onclick="switchChannel('saycord-mod', 'Tính Năng Độc Quyền')" id="chan-saycord-mod" class="channel-btn w-full flex items-center px-2 py-1.5 rounded text-gray-400 hover:bg-saycord-hover hover:text-gray-200">
+                                <i class="fa-solid fa-hashtag text-purple-400 mr-2"></i>
+                                <span class="text-sm font-medium">#saycord-mod</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-[11px] font-bold text-saycord-muted uppercase px-2 mb-1 tracking-wider">KÊNH THOẠI HIGH-QUALITY</div>
+                        <div onclick="toggleVoiceRoom(true)" class="w-full flex items-center justify-between px-2 py-1.5 rounded text-gray-400 hover:bg-saycord-hover hover:text-gray-200 cursor-pointer">
+                            <div class="flex items-center">
+                                <i class="fa-solid fa-volume-high text-green-400 mr-2"></i>
+                                <span class="text-sm font-medium">🔊 4K 60FPS Room</span>
+                            </div>
+                            <span class="text-[9px] bg-green-900/70 text-green-300 px-1 rounded">Nitro</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Voice Active Bar -->
+                <div id="voice-bar" class="bg-[#111214] p-2.5 border-t border-gray-800 flex items-center justify-between hidden">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2.5 h-2.5 bg-green-500 rounded-full animate-ping"></div>
+                        <div>
+                            <div class="text-xs font-bold text-green-400">Đã kết nối thoại</div>
+                            <div class="text-[10px] text-saycord-muted">Voice 384kbps Ultra Audio</div>
+                        </div>
+                    </div>
+                    <button onclick="toggleVoiceRoom(false)" class="text-red-400 hover:text-red-300 p-1">
+                        <i class="fa-solid fa-phone-slash"></i>
+                    </button>
+                </div>
+
+                <!-- User Footer Bar -->
+                <div class="h-14 bg-saycord-userbar px-2 flex items-center justify-between">
+                    <div class="flex items-center gap-2 p-1 rounded-md hover:bg-saycord-hover cursor-pointer flex-1 min-w-0 mr-1" onclick="openModSettings('profile')">
+                        <div class="relative flex-shrink-0">
+                            <div id="user-decor-ring" class="avatar-decor-ring"></div>
+                            <img id="user-avatar-img" src="https://cdn.discordapp.com/embed/avatars/0.png" class="w-8 h-8 rounded-full bg-gray-600 object-cover relative z-10">
+                            <span id="user-status-dot" class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-saycord-userbar z-20"></span>
+                        </div>
+                        <div class="flex flex-col min-w-0 flex-1">
+                            <div class="flex items-center gap-1">
+                                <span id="user-display-name" class="text-sm font-semibold text-white truncate leading-tight">Username</span>
+                                <span id="user-badge-slot" class="text-xs text-pink-400 nitro-badge-glow"><i class="fa-solid fa-gem"></i></span>
+                            </div>
+                            <span id="user-custom-status-text" class="text-[10px] text-saycord-muted truncate leading-tight">SAYCORD MODE Active</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center text-gray-400 text-sm">
+                        <button title="Cấu hình SAYCORD MODE" onclick="openModSettings('effects')" class="hover:text-purple-400 p-1.5 rounded hover:bg-saycord-hover">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+                        <button title="Đăng Xuất" onclick="logoutSession()" class="hover:text-red-400 p-1.5 rounded hover:bg-saycord-hover">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. MAIN CHAT AREA -->
+            <div id="main-chat-panel" class="flex-1 flex flex-col bg-saycord-bg relative">
+                <!-- Chat Header -->
+                <div class="h-12 px-4 border-b border-[#1f2023] flex items-center justify-between shadow-sm bg-saycord-bg z-10">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-hashtag text-gray-400 text-xl"></i>
+                        <span id="current-channel-title" class="font-bold text-white">chung</span>
+                        <span class="text-gray-700">|</span>
+                        <span class="text-xs text-purple-400 font-medium hidden sm:inline flex items-center gap-1">
+                            <i class="fa-solid fa-shield-halved"></i> SAYCORD Anti-Delete Logger Active
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-3 text-gray-400 text-base">
+                        <button title="Bật/Tắt Ghost Mode" onclick="toggleGhostMode()" id="btn-ghost-mode" class="hover:text-purple-400 text-purple-400">
+                            <i class="fa-solid fa-ghost"></i>
+                        </button>
+                        <button title="SAYCORD Effects & Settings" onclick="openModSettings('effects')" class="hover:text-pink-400">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Feed -->
+                <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <!-- Welcome Mod Card -->
+                    <div class="bg-gradient-to-r from-purple-900/40 via-indigo-900/30 to-pink-900/40 p-5 rounded-2xl border border-purple-500/30">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center text-white text-xl shadow">
+                                <i class="fa-solid fa-bolt-lightning"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-white">Chào mừng tới SAYCORD MODE</h2>
+                                <p class="text-xs text-purple-200">Hệ thống Mod Client cao cấp đã được tải thành công.</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 text-xs">
+                            <div class="bg-black/40 p-2 rounded border border-purple-500/20 text-purple-300">
+                                <i class="fa-solid fa-check text-green-400 mr-1"></i> Particle Snowfall
+                            </div>
+                            <div class="bg-black/40 p-2 rounded border border-purple-500/20 text-purple-300">
+                                <i class="fa-solid fa-check text-green-400 mr-1"></i> Neon Glowing Box
+                            </div>
+                            <div class="bg-black/40 p-2 rounded border border-purple-500/20 text-purple-300">
+                                <i class="fa-solid fa-check text-green-400 mr-1"></i> Data Export / Import
+                            </div>
+                            <div class="bg-black/40 p-2 rounded border border-purple-500/20 text-purple-300">
+                                <i class="fa-solid fa-check text-green-400 mr-1"></i> Custom Nitro Badges
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Anti-Deleted Message Demo -->
+                    <div class="flex items-start gap-4 hover:bg-saycord-hover/50 -mx-4 px-4 py-1.5 rounded transition border-l-2 border-red-500 bg-red-950/10">
+                        <img src="https://cdn.discordapp.com/embed/avatars/3.png" class="w-10 h-10 rounded-full bg-gray-600 mt-0.5">
+                        <div class="flex-1">
+                            <div class="flex items-baseline gap-2">
+                                <span class="font-semibold text-gray-300 text-sm">System Logger</span>
+                                <span class="text-[9px] bg-red-900/80 text-red-300 px-1 rounded font-mono">DELETED MSG</span>
+                                <span class="text-xs text-saycord-muted">Hôm nay lúc 12:00</span>
+                            </div>
+                            <p class="text-red-300 line-through text-sm mt-0.5">
+                                [Tin nhắn thử nghiệm bị người dùng khác xóa - SAYCORD Logger đã khôi phục lại]
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Chat Feed Container -->
+                    <div id="dynamic-messages-list" class="space-y-3"></div>
+                </div>
+
+                <!-- Chat Input Area -->
+                <div class="p-4 pt-0">
+                    <div class="text-[11px] text-saycord-muted px-2 py-1 flex justify-between items-center">
+                        <span id="typing-status-text"></span>
+                        <span class="text-purple-400 font-mono text-[10px]"><i class="fa-solid fa-ghost"></i> Ghost Mode: Enabled</span>
+                    </div>
+
+                    <form onsubmit="handleSendMessage(event)" class="bg-saycord-input rounded-xl px-4 py-2.5 flex items-center gap-3 border border-gray-700/50">
+                        <button type="button" onclick="triggerSimulatedUpload()" class="text-gray-400 hover:text-white bg-gray-700/50 hover:bg-gray-600 rounded-full w-7 h-7 flex items-center justify-center transition">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                        </button>
+                        
+                        <input type="text" id="chat-input-field" placeholder="Nhập tin nhắn..." 
+                            class="bg-transparent text-white text-sm focus:outline-none w-full placeholder-gray-500">
+                        
+                        <div class="flex items-center gap-2 text-gray-400">
+                            <button type="button" onclick="insertEmoji(':saycord_fire:')" class="hover:text-amber-400 transition" title="Nitro Emoji">
+                                <i class="fa-solid fa-face-smile text-lg"></i>
+                            </button>
+                            <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3.5 py-1.5 rounded-lg font-semibold transition">
+                                Gửi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL: SAYCORD CONTROL CENTER & SETTINGS HUB            -->
+    <!-- ======================================================== -->
+    <div id="saycord-settings-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
+        <div class="bg-[#2b2d31] w-full max-w-4xl h-[85vh] rounded-2xl border border-gray-800 shadow-2xl flex overflow-hidden">
+            <!-- Left Navigation Menu -->
+            <div class="w-60 bg-[#1e1f22] p-4 flex flex-col justify-between flex-shrink-0">
+                <div class="space-y-6">
+                    <div class="flex items-center gap-2 px-2">
+                        <i class="fa-solid fa-bolt-lightning text-purple-400 text-xl"></i>
+                        <span class="font-extrabold text-white text-base">SAYCORD MODE</span>
+                    </div>
+
+                    <div class="space-y-1 text-sm font-medium">
+                        <div class="text-[11px] font-bold text-saycord-muted uppercase px-2 mb-1 tracking-wider">CẤU HÌNH HỆ THỐNG</div>
+                        <button onclick="switchSettingsTab('effects')" id="tab-btn-effects" class="w-full text-left px-3 py-2 rounded-lg text-white bg-purple-600 flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles w-5"></i> Effects Hub
+                        </button>
+                        <button onclick="switchSettingsTab('themes')" id="tab-btn-themes" class="w-full text-left px-3 py-2 rounded-lg text-gray-400 hover:bg-saycord-hover hover:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-palette w-5"></i> Theme Store
+                        </button>
+                        <button onclick="switchSettingsTab('profile')" id="tab-btn-profile" class="w-full text-left px-3 py-2 rounded-lg text-gray-400 hover:bg-saycord-hover hover:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-id-card w-5"></i> Profile & Badges
+                        </button>
+                        <button onclick="switchSettingsTab('css')" id="tab-btn-css" class="w-full text-left px-3 py-2 rounded-lg text-gray-400 hover:bg-saycord-hover hover:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-code w-5"></i> Live Custom CSS
+                        </button>
+                        <button onclick="switchSettingsTab('backup')" id="tab-btn-backup" class="w-full text-left px-3 py-2 rounded-lg text-gray-400 hover:bg-saycord-hover hover:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-database w-5"></i> Data Backup (JSON)
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="closeModSettings()" class="w-full bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white py-2 rounded-lg text-xs font-semibold transition border border-red-500/30">
+                    Đóng Cài Đặt (ESC)
+                </button>
+            </div>
+
+            <!-- Right Content Panel -->
+            <div class="flex-1 bg-saycord-bg p-6 overflow-y-auto">
+                
+                <!-- TAB 1: EFFECTS HUB -->
+                <div id="tab-content-effects" class="space-y-4">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> SAYCORD Visual Effects Hub
+                    </h3>
+                    <p class="text-xs text-saycord-muted">Tùy biến hiệu ứng đồ họa sống động trực tiếp trên giao diện web.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <!-- Toggle Snowfall Particles -->
+                        <div class="bg-[#2b2d31] p-4 rounded-xl border border-gray-700 flex items-center justify-between">
+                            <div>
+                                <div class="font-semibold text-white text-sm">Snowfall Particles</div>
+                                <div class="text-xs text-saycord-muted mt-0.5">Hiệu ứng tuyết rơi/hạt bụi lấp lánh nền canvas.</div>
+                            </div>
+                            <input type="checkbox" id="effect-snowfall-toggle" onchange="toggleEffect('snowfall', this.checked)" class="w-5 h-5 accent-purple-500 cursor-pointer">
+                        </div>
+
+                        <!-- Toggle Neon Glow -->
+                        <div class="bg-[#2b2d31] p-4 rounded-xl border border-gray-700 flex items-center justify-between">
+                            <div>
+                                <div class="font-semibold text-white text-sm">Neon Cyber Glow</div>
+                                <div class="text-xs text-saycord-muted mt-0.5">Viền Cyberpunk phát sáng quanh khung chat.</div>
+                            </div>
+                            <input type="checkbox" id="effect-neon-toggle" onchange="toggleEffect('neon', this.checked)" class="w-5 h-5 accent-purple-500 cursor-pointer">
+                        </div>
+
+                        <!-- Toggle Glassmorphism -->
+                        <div class="bg-[#2b2d31] p-4 rounded-xl border border-gray-700 flex items-center justify-between">
+                            <div>
+                                <div class="font-semibold text-white text-sm">Glassmorphism UI</div>
+                                <div class="text-xs text-saycord-muted mt-0.5">Hiệu ứng kính mờ cho các thanh Sidebar và Header.</div>
+                            </div>
+                            <input type="checkbox" id="effect-glass-toggle" onchange="toggleEffect('glass', this.checked)" class="w-5 h-5 accent-purple-500 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: THEME STORE -->
+                <div id="tab-content-themes" class="space-y-4 hidden">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-palette text-pink-400"></i> SAYCORD Theme Store
+                    </h3>
+                    <p class="text-xs text-saycord-muted">Thay đổi tông màu chủ đạo cho toàn bộ ứng dụng.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <div onclick="applyThemePreset('default')" class="bg-[#2b2d31] p-4 rounded-xl border border-purple-500 cursor-pointer hover:scale-[1.02] transition">
+                            <div class="font-bold text-white text-sm">Discord Dark Default</div>
+                            <div class="text-xs text-saycord-muted mt-1">Giao diện tối tiêu chuẩn nguyên bản.</div>
+                        </div>
+                        <div onclick="applyThemePreset('oled')" class="bg-black p-4 rounded-xl border border-gray-800 cursor-pointer hover:scale-[1.02] transition">
+                            <div class="font-bold text-white text-sm">OLED Pitch Black</div>
+                            <div class="text-xs text-gray-400 mt-1">Đen tuyền tối đa cho màn hình OLED.</div>
+                        </div>
+                        <div onclick="applyThemePreset('cyberpunk')" class="bg-slate-900 p-4 rounded-xl border border-blue-500 cursor-pointer hover:scale-[1.02] transition">
+                            <div class="font-bold text-blue-400 text-sm">Cyberpunk Neon 2077</div>
+                            <div class="text-xs text-cyan-300 mt-1">Sắc xanh đậm và neon tương lai.</div>
+                        </div>
+                        <div onclick="applyThemePreset('vaporwave')" class="bg-[#1a0933] p-4 rounded-xl border border-pink-500 cursor-pointer hover:scale-[1.02] transition">
+                            <div class="font-bold text-pink-400 text-sm">Retro Vaporwave</div>
+                            <div class="text-xs text-purple-300 mt-1">Phong cách tím mộng mơ thập niên 80.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: PROFILE CUSTOMIZER -->
+                <div id="tab-content-profile" class="space-y-4 hidden">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-id-card text-blue-400"></i> Custom Profile & Nitro Badges
+                    </h3>
+                    
+                    <div class="space-y-3 bg-[#1e1f22] p-4 rounded-xl">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Hiển Thị Tên (Display Name)</label>
+                            <input type="text" id="profile-name-input" class="w-full bg-[#2b2d31] text-white text-xs p-2.5 rounded border border-gray-700 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Trạng Thái Cá Nhân (Custom Status)</label>
+                            <input type="text" id="profile-status-input" class="w-full bg-[#2b2d31] text-white text-xs p-2.5 rounded border border-gray-700 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Chọn Nitro Badge</label>
+                            <select id="profile-badge-select" class="w-full bg-[#2b2d31] text-white text-xs p-2.5 rounded border border-gray-700 focus:outline-none">
+                                <option value="gem">💎 Gold Nitro Badge</option>
+                                <option value="bravery">🛡️ HypeSquad Bravery</option>
+                                <option value="brilliance">💎 HypeSquad Brilliance</option>
+                                <option value="supporter">⭐ Early Supporter</option>
+                            </select>
+                        </div>
+                        <button onclick="saveProfileChanges()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2 rounded transition">
+                            Lưu Profile
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAB 4: LIVE CUSTOM CSS -->
+                <div id="tab-content-css" class="space-y-4 hidden">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-code text-green-400"></i> Live Custom CSS Injector
+                    </h3>
+                    
+                    <textarea id="live-css-textarea" rows="8" placeholder="/* Nhập CSS cá nhân tại đây */&#10;body { filter: contrast(1.02); }"
+                        class="w-full bg-[#1e1f22] text-green-400 font-mono text-xs p-4 rounded-xl border border-gray-700 focus:outline-none focus:border-green-500"></textarea>
+
+                    <button onclick="applyUserCustomCSS()" class="bg-green-600 hover:bg-green-500 text-white text-xs font-bold px-4 py-2 rounded transition flex items-center gap-2">
+                        <i class="fa-solid fa-play"></i> Apply CSS
+                    </button>
+                </div>
+
+                <!-- TAB 5: DATA BACKUP & RESTORE -->
+                <div id="tab-content-backup" class="space-y-4 hidden">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-database text-amber-400"></i> Lưu Trữ & Sao Lưu Dữ Liệu (JSON)
+                    </h3>
+                    <p class="text-xs text-saycord-muted">Xuất hoặc Nhập dữ liệu SAYCORD MODE của bạn để sử dụng trên thiết bị khác.</p>
+
+                    <div class="flex gap-3">
+                        <button onclick="exportSaycordData()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition flex items-center gap-2">
+                            <i class="fa-solid fa-download"></i> Export Data (JSON)
+                        </button>
+                        
+                        <label class="bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition cursor-pointer flex items-center gap-2">
+                            <i class="fa-solid fa-upload"></i> Import Data (JSON)
+                            <input type="file" id="import-json-file" accept=".json" onchange="importSaycordData(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL: DEV PORTAL SETUP GUIDE                           -->
+    <!-- ======================================================== -->
+    <div id="dev-guide-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
+        <div class="bg-[#2b2d31] w-full max-w-2xl rounded-2xl border border-gray-800 shadow-2xl overflow-hidden flex flex-col">
+            <div class="px-6 py-4 bg-[#1e1f22] border-b border-gray-800 flex justify-between items-center">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-brands fa-discord text-purple-400"></i> Hướng Dẫn Cấu Hình Discord Redirect URI
+                </h3>
+                <button onclick="toggleDevGuideModal(false)" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-3 text-xs text-gray-300 overflow-y-auto max-h-[70vh]">
+                <p>Để khắc phục triệt để lỗi <b>OAuth2 redirect_uri không hợp lệ</b>:</p>
+                <ol class="list-decimal list-inside space-y-2 bg-[#1e1f22] p-4 rounded-xl border border-gray-800">
+                    <li>Mở <a href="https://discord.com/developers/applications" target="_blank" class="text-purple-400 underline font-bold">Discord Developer Portal</a>.</li>
+                    <li>Vào App của bạn &rarr; Chọn mục <b>OAuth2</b>.</li>
+                    <li>Bấm <b>Add Redirect</b> và dán chính xác URI đã được tự động phát hiện ở màn hình đăng nhập.</li>
+                    <li>Lưu thay đổi (Save Changes) trên Discord Portal.</li>
+                </ol>
+            </div>
+
+            <div class="px-6 py-3 bg-[#1e1f22] border-t border-gray-800 text-right">
+                <button onclick="toggleDevGuideModal(false)" class="bg-purple-600 hover:bg-purple-500 text-white font-semibold px-4 py-2 rounded-xl text-xs">
+                    Đã Hiểu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- APP CORE LOGIC SCRIPT -->
+    <script>
+        // GLOBAL STATE & STORAGE DEFAULTS
+        const SAYCORD_STORAGE_KEY = 'SAYCORD_MODE_DATA_V1';
+        
+        let appState = {
+            user: null,
+            effects: {
+                snowfall: false,
+                neon: true,
+                glass: false
+            },
+            theme: 'default',
+            customCSS: '',
+            messages: [],
+            isGhostMode: true
+        };
+
+        // PARTICLES CANVAS ANIMATION ENGINE
+        let particleAnimationId = null;
+        let particles = [];
+
+        function initParticlesEngine() {
+            const canvas = document.getElementById('particles-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            particles = [];
+            for (let i = 0; i < 45; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 2.5 + 0.5,
+                    speedY: Math.random() * 0.8 + 0.2,
+                    speedX: Math.random() * 0.4 - 0.2,
+                    opacity: Math.random() * 0.6 + 0.2
+                });
+            }
+
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+
+                particles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(216, 180, 254, ${p.opacity})`;
+                    ctx.fill();
+
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+
+                    if (p.y > canvas.height) {
+                        p.y = 0;
+                        p.x = Math.random() * canvas.width;
+                    }
+                });
+
+                particleAnimationId = requestAnimationFrame(render);
+            }
+
+            render();
+        }
+
+        function stopParticlesEngine() {
+            if (particleAnimationId) cancelAnimationFrame(particleAnimationId);
+            const canvas = document.getElementById('particles-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // DOM LOAD INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStateFromStorage();
+            setupExactRedirectURI();
+            checkOAuthCallback();
+            applyStateToUI();
+        });
+
+        // OAUTH & URI SANITIZER
+        function getCleanRedirectURI() {
+            const override = document.getElementById('override-redirect-input')?.value.trim();
+            if (override) return override;
+
+            let cleanUrl = window.location.origin + window.location.pathname;
+            if (cleanUrl.endsWith('/index.html')) {
+                cleanUrl = cleanUrl.replace('/index.html', '/');
+            }
+            return cleanUrl;
+        }
+
+        function setupExactRedirectURI() {
+            const cleanURI = getCleanRedirectURI();
+            const inputEl = document.getElementById('detected-redirect-uri');
+            if (inputEl) inputEl.value = cleanURI;
+
+            const savedClientId = localStorage.getItem('saycord_client_id') || '';
+            if (document.getElementById('client-id-input')) {
+                document.getElementById('client-id-input').value = savedClientId;
+            }
+        }
+
+        function copyRedirectURI() {
+            const uri = getCleanRedirectURI();
+            const temp = document.createElement('input');
+            temp.value = uri;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            showToast('Đã sao chép Redirect URI!');
+        }
+
+        function loginWithDiscordOAuth() {
+            const clientId = document.getElementById('client-id-input').value.trim();
+            if (!clientId) {
+                alert('Vui lòng điền Discord Client ID!');
+                toggleDevGuideModal(true);
+                return;
+            }
+
+            localStorage.setItem('saycord_client_id', clientId);
+            const redirectUri = encodeURIComponent(getCleanRedirectURI());
+            const scope = encodeURIComponent('identify email');
+            
+            const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+            window.location.href = authUrl;
+        }
+
+        function checkOAuthCallback() {
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            const accessToken = params.get('access_token');
+
+            if (accessToken) {
+                history.pushState("", document.title, window.location.pathname);
+                fetchDiscordUserData(accessToken);
+            }
+        }
+
+        async function fetchDiscordUserData(token) {
+            try {
+                const res = await fetch('https://discord.com/api/v10/users/@me', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error('Không thể kết nối Discord API');
+                const data = await res.json();
+
+                appState.user = {
+                    id: data.id,
+                    username: data.username,
+                    global_name: data.global_name || data.username,
+                    avatar: data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=256` : 'https://cdn.discordapp.com/embed/avatars/0.png',
+                    customStatus: 'SAYCORD OAuth User',
+                    badge: 'gem'
+                };
+
+                saveStateToStorage();
+                applyStateToUI();
+                showToast(`Chào mừng ${appState.user.global_name}!`);
+            } catch (err) {
+                alert('Lỗi đăng nhập: ' + err.message);
+            }
+        }
+
+        function startDemoSession() {
+            appState.user = {
+                id: '888999111',
+                username: 'saycord_vip',
+                global_name: 'SAYCORD Member',
+                avatar: 'https://cdn.discordapp.com/embed/avatars/1.png',
+                customStatus: 'Testing SAYCORD MODE',
+                badge: 'gem'
+            };
+            saveStateToStorage();
+            applyStateToUI();
+            showToast('Khởi chạy DEMO MODE thành công!');
+        }
+
+        // LOCALSTORAGE PERSISTENCE ENGINE
+        function saveStateToStorage() {
+            localStorage.setItem(SAYCORD_STORAGE_KEY, JSON.stringify(appState));
+        }
+
+        function loadStateFromStorage() {
+            const raw = localStorage.getItem(SAYCORD_STORAGE_KEY);
+            if (raw) {
+                try {
+                    appState = { ...appState, ...JSON.parse(raw) };
+                } catch(e) {
+                    console.error('Data error:', e);
+                }
+            }
+        }
+
+        function applyStateToUI() {
+            if (!appState.user) {
+                document.getElementById('auth-view').classList.remove('hidden');
+                document.getElementById('saycord-app-view').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('auth-view').classList.add('hidden');
+            document.getElementById('saycord-app-view').classList.remove('hidden');
+
+            // Render User Profiles
+            document.getElementById('user-avatar-img').src = appState.user.avatar;
+            document.getElementById('user-display-name').innerText = appState.user.global_name;
+            document.getElementById('user-custom-status-text').innerText = appState.user.customStatus || 'SAYCORD Active';
+
+            // Profile Inputs
+            document.getElementById('profile-name-input').value = appState.user.global_name;
+            document.getElementById('profile-status-input').value = appState.user.customStatus || '';
+
+            // Apply Visual Toggles & Effects
+            document.getElementById('effect-snowfall-toggle').checked = appState.effects.snowfall;
+            document.getElementById('effect-neon-toggle').checked = appState.effects.neon;
+            document.getElementById('effect-glass-toggle').checked = appState.effects.glass;
+
+            toggleEffect('snowfall', appState.effects.snowfall, false);
+            toggleEffect('neon', appState.effects.neon, false);
+            toggleEffect('glass', appState.effects.glass, false);
+
+            // Apply Theme & CSS
+            applyThemePreset(appState.theme, false);
+            document.getElementById('live-css-textarea').value = appState.customCSS || '';
+            applyUserCustomCSS(false);
+
+            renderMessagesFeed();
+        }
+
+        // CHAT ENGINE
+        function handleSendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input-field');
+            const text = input.value.trim();
+            if (!text || !appState.user) return;
+
+            const newMsg = {
+                id: Date.now(),
+                user: appState.user.global_name,
+                avatar: appState.user.avatar,
+                text: text,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            appState.messages.push(newMsg);
+            saveStateToStorage();
+            renderMessagesFeed();
+
+            input.value = '';
+            const feed = document.getElementById('chat-messages-container');
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        function renderMessagesFeed() {
+            const container = document.getElementById('dynamic-messages-list');
+            container.innerHTML = appState.messages.map(m => `
+                <div class="flex items-start gap-4 hover:bg-saycord-hover/50 -mx-4 px-4 py-1.5 rounded transition">
+                    <img src="${m.avatar}" class="w-10 h-10 rounded-full bg-gray-600 mt-0.5 object-cover">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-baseline gap-2">
+                            <span class="font-semibold text-white text-sm cursor-pointer hover:underline">${escapeHTML(m.user)}</span>
+                            <span class="text-xs text-saycord-muted">${m.time}</span>
+                        </div>
+                        <p class="text-gray-200 text-sm mt-0.5 break-words">${escapeHTML(m.text)}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // EFFECTS & SETTINGS CONTROL
+        function toggleEffect(name, active, shouldSave = true) {
+            appState.effects[name] = active;
+            
+            if (name === 'snowfall') {
+                const canvas = document.getElementById('particles-canvas');
+                if (active) {
+                    canvas.classList.remove('hidden');
+                    initParticlesEngine();
+                } else {
+                    canvas.classList.add('hidden');
+                    stopParticlesEngine();
+                }
+            } else if (name === 'neon') {
+                const panel = document.getElementById('main-chat-panel');
+                panel.classList.toggle('neon-glow-active', active);
+            } else if (name === 'glass') {
+                const side = document.querySelector('.bg-saycord-sidebar');
+                side.classList.toggle('glassmorphism-active', active);
+            }
+
+            if (shouldSave) saveStateToStorage();
+        }
+
+        function applyThemePreset(themeName, shouldSave = true) {
+            appState.theme = themeName;
+            document.body.className = `h-screen w-screen relative overflow-hidden theme-${themeName}`;
+            if (shouldSave) {
+                saveStateToStorage();
+                showToast(`Đã đổi theme: ${themeName.toUpperCase()}`);
+            }
+        }
+
+        function applyUserCustomCSS(shouldSave = true) {
+            const css = document.getElementById('live-css-textarea').value;
+            appState.customCSS = css;
+            document.getElementById('saycord-live-user-css').innerHTML = css;
+            if (shouldSave) {
+                saveStateToStorage();
+                showToast('Đã áp dụng Custom CSS!');
+            }
+        }
+
+        function saveProfileChanges() {
+            if (!appState.user) return;
+            appState.user.global_name = document.getElementById('profile-name-input').value.trim() || appState.user.global_name;
+            appState.user.customStatus = document.getElementById('profile-status-input').value.trim();
+            
+            saveStateToStorage();
+            applyStateToUI();
+            showToast('Đã lưu thông tin Profile!');
+        }
+
+        // JSON EXPORT / IMPORT ENGINE
+        function exportSaycordData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `SAYCORD_MODE_DATA_${Date.now()}.json`);
+            document.body.appendChild(dlAnchorElem);
+            dlAnchorElem.click();
+            dlAnchorElem.remove();
+            showToast('Đã xuất file cấu hình JSON!');
+        }
+
+        function importSaycordData(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    appState = { ...appState, ...parsed };
+                    saveStateToStorage();
+                    applyStateToUI();
+                    showToast('Đã nhập dữ liệu JSON thành công!');
+                } catch(err) {
+                    alert('File JSON không hợp lệ!');
+                }
+            };
+            if (event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0]);
+            }
+        }
+
+        // MODAL HELPERS & UTILS
+        function openModSettings(tab = 'effects') {
+            document.getElementById('saycord-settings-modal').classList.remove('hidden');
+            switchSettingsTab(tab);
+        }
+
+        function closeModSettings() {
+            document.getElementById('saycord-settings-modal').classList.add('hidden');
+        }
+
+        function switchSettingsTab(tabName) {
+            const tabs = ['effects', 'themes', 'profile', 'css', 'backup'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                const content = document.getElementById(`tab-content-${t}`);
+                if (btn && content) {
+                    if (t === tabName) {
+                        btn.className = "w-full text-left px-3 py-2 rounded-lg text-white bg-purple-600 flex items-center gap-2 font-semibold";
+                        content.classList.remove('hidden');
+                    } else {
+                        btn.className = "w-full text-left px-3 py-2 rounded-lg text-gray-400 hover:bg-saycord-hover hover:text-white flex items-center gap-2";
+                        content.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        function toggleDevGuideModal(show) {
+            document.getElementById('dev-guide-modal').classList.toggle('hidden', !show);
+        }
+
+        function toggleVoiceRoom(connect) {
+            document.getElementById('voice-bar').classList.toggle('hidden', !connect);
+            showToast(connect ? 'Đã kết nối Kênh Thoại 4K!' : 'Đã ngắt kết nối thoại.');
+        }
+
+        function toggleGhostMode() {
+            appState.isGhostMode = !appState.isGhostMode;
+            document.getElementById('btn-ghost-mode').className = appState.isGhostMode ? "hover:text-purple-400 text-purple-400" : "text-gray-500 hover:text-gray-300";
+            showToast(`Ghost Mode: ${appState.isGhostMode ? 'BẬT' : 'TẮT'}`);
+        }
+
+        function switchServer(name) {
+            document.getElementById('server-name-heading').innerText = name.toUpperCase();
+            showToast(`Đã chuyển tới server ${name}`);
+        }
+
+        function switchChannel(id, title) {
+            document.getElementById('current-channel-title').innerText = id;
+            showToast(`Đã vào kênh #${id}`);
+        }
+
+        function insertEmoji(code) {
+            const input = document.getElementById('chat-input-field');
+            input.value += ` ${code} `;
+            input.focus();
+        }
+
+        function triggerSimulatedUpload() {
+            showToast('SAYCORD Bypass: Đính kèm file dung lượng lớn');
+        }
+
+        function logoutSession() {
+            appState.user = null;
+            saveStateToStorage();
+            applyStateToUI();
+            showToast('Đã đăng xuất!');
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+        }
+
+        function showToast(text) {
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-5 right-5 bg-purple-600 text-white font-medium px-4 py-2.5 rounded-xl shadow-2xl text-xs z-50 flex items-center gap-2 animate-bounce";
+            toast.innerHTML = `<i class="fa-solid fa-bolt-lightning"></i> ${text}`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2300);
+        }
+    </script>
+</body>
+</html>
+```
